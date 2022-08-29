@@ -1,204 +1,158 @@
 import java.util.concurrent.*;
 import java.util.*;
+import java.util.logging.Logger;
 import java.util.Random;
 
 
-class Registration
-{
+class Registration {
 	private Random rand = new Random();
 	private int year;
 	private String yearString;
-	private String[] counties = {"D", "C", "CE", "CW", "DL", "KE", "KK", "KY", "L", "LD", "LH",
-						"LK", "LM", "LS", "MH", "MN", "MO", "OY", "RN", "SO", "TN", "TS",
-						"W", "WD", "WH", "WX", "WW"};
+	private String[] counties = {
+		"D", "C", "CE", "CW", "DL", "KE", "KK", "KY", "L", "LD", "LH",
+		"LK", "LM", "LS", "MH", "MN", "MO", "OY", "RN", "SO", "TN", "TS",
+		"W", "WD", "WH", "WX", "WW"};
 	private String county;
 	private int number;
 	private String registration;
 
-	public Registration()
-	{
+	public Registration() {
 		this.year = rand.nextInt(11) + 1;
-		if(this.year < 10)
-		{
+		if(this.year < 10) {
 			yearString = "0"+this.year;
-		}
-		else
+		} else {
 			yearString = ""+year;
+		}
 
 		this.county = counties[rand.nextInt(counties.length - 1)];
-
 		this.number = rand.nextInt(75000);
 
 		registration = yearString + '-' + county + '-' + number;
 	}
 
-	public String getReg()
-	{
+	public String getReg() {
 		return registration;
 	}
 }
 
 class ParkingSpace implements Comparable<ParkingSpace>
 {
-	private boolean occupied;
 	private Date expiry;
 	private int parkingNum;
 	private Car car;
 
-	public String getReg()
-	{
+	public String getReg() {
 		return car.reg();
 	}
 
-	public String getType()
-	{
+	public String getType() {
 		return car.getType();
 	}
 
-	public Car getCar()
-	{
+	public Car getCar() {
 		return car;
 	}
 
-	public int getParkingNum()
-	{
+	public int getParkingNum() {
 		return parkingNum;
 	}
-	public ParkingSpace()
-	{
-		occupied = false;
+	public ParkingSpace() {
 		expiry = null;
 	}
 
-	public Date getExpiry()
-	{
+	public Date getExpiry() {
 		return expiry;
 	}
 
-	public ParkingSpace(Date expiry, int parkingNum, Car car)
-	{
+	public ParkingSpace(Date expiry, int parkingNum, Car car) {
 		this.car = car;
 		this.expiry = expiry;
 		this.parkingNum = parkingNum;
 	}
 
-	public void setExpiry(Date expiry)
-	{
+	public void setExpiry(Date expiry) {
 		this.expiry = expiry;
 	}
 
 	@Override
-	public int compareTo(ParkingSpace o)
-	{
+	public int compareTo(ParkingSpace o) {
 		return getExpiry().compareTo(o.getExpiry());
 	}
 
 
 }
 
-class Car
-{
-	private final double SIZE = 1;
-	private boolean lecturer = false;
-	private Registration reg;
-	private int spot;
-	private String type = "Car";
+class Car {
+	protected double size;
+	protected boolean lecturer = false;
+	protected Registration reg;
+	protected int spot;
+	protected String type = "Car";
 
-	public String getType()
-	{
+	public String getType() {
 		return this.type;
 	}
 
-	public Car(Registration reg)
-	{
+	public Car(Registration reg) {
 		this.reg = reg;
+		this.size = 1;
 	}
 
-	public Car()
-	{
-		reg = new Registration();
+	public Car() {
+		this.reg = new Registration();
+		this.size = 1;
 	}
 
-	public boolean isLecturer()
-	{
+	public boolean isLecturer() {
 		return lecturer;
 	}
 
-	public double getSize()
-	{
-		return SIZE;
+	public double getSize() {
+		return this.size;
 	}
 
-	public boolean setSpot(int spot)
-	{
+	public boolean setSpot(int spot) {
 		this.spot = spot;
 		return true;
 	}
 
-	public int getSpot()
-	{
+	public int getSpot() {
 		return this.spot;
 	}
 
-	public String reg()
-	{
+	public String reg() {
 		return reg.getReg();
 	}
 
 
 }
 
-class Humvee extends Car
-{
+class Humvee extends Car {
 
-	private final double SIZE = 1.5;
-	private final boolean LECTURER = true;
-	private Registration reg;
-	private int spot;
-	private String type = "Hummer";
-
-	public boolean setSpot(int spot)
-	{
-		this.spot = spot;
-		return true;
-	}
-
-	public int getSpot()
-	{
-		return this.spot;
-	}
-
-	public String getType()
-	{
-		return this.type;
-	}
-	public Humvee(Registration reg)
-	{
+	public Humvee(Registration reg) {
+		this.type = "Hummer";
+		this.size = 1.5;
 		this.reg = reg;	
 	}
 
-	public Humvee()
-	{
-		reg = new Registration();
+	public Humvee() {
+		this.reg = new Registration();
+		this.size = 1.5;
+		this.type = "Hummer";
 	}
-
-	public double getSize()
-	{
-		return SIZE;
-	}
-
 }
 
-class Carpark
-{
+class Carpark {
+	Logger logger = Logger.getLogger(this.getClass().getName());
 	private Random rand = new Random();
 
 	final int TOTAL_SPACES = 150;
 
-	private LinkedBlockingQueue<Car> vehicles = new LinkedBlockingQueue<Car>();
+	private LinkedBlockingQueue<Car> vehicles = new LinkedBlockingQueue<>();
+	private ConcurrentHashMap<String, ParkingSpace> carparkData = new ConcurrentHashMap<>();
 
 	private boolean[] freeSpaces = new boolean[TOTAL_SPACES];
-	LinkedList<ParkingSpace> spaces = new LinkedList<ParkingSpace>();
+	LinkedList<ParkingSpace> spaces = new LinkedList<>();
 
 	public static double currentCars = 0;
 	public static boolean spaceAvailable = true;
@@ -206,8 +160,7 @@ class Carpark
 	public int students = 0;
 	public int lecturers = 0;
 
-	public synchronized ParkingSpace removeCar()
-	{
+	public synchronized ParkingSpace removeCar() {
 		ParkingSpace space = spaces.removeFirst();
 		currentCars -= space.getCar().getSize();
 		int num = space.getParkingNum();
@@ -219,26 +172,23 @@ class Carpark
 		return space;
 	}
 
-	public void queueCar(Car car)
-	{
-		System.out.println(car.getType() + " " + car.reg() + " is currently queue'd to enter.");
+	public void queueCar(Car car) {
+		String fmt = String.format("%s %s is currently queue'd to enter.", car.getType(), car.reg());
+		logger.info(fmt);
 		vehicles.offer(car);
 	}
 
-	public void fillSpace(int space)
-	{
+	public void fillSpace(int space) {
 		freeSpaces[space] = false;
 	}
 
-	public Carpark()
-	{
+	public Carpark() {
 		for (int i = 0; i < 150; i++) {
 			freeSpaces[i] = true;
 		}
 	}
 
-	public int findFreeSpace()
-	{
+	public int findFreeSpace() {
 		if(!spaceAvailable)
 			return -1;
 		else
@@ -250,18 +200,13 @@ class Carpark
 			return -1;
 	}
 
-	public int getQueued()
-	{
+	public int getQueued() {
 		return vehicles.size();
 	}
 
-	public synchronized boolean enterCar(Car car) throws InterruptedException
-	{
-
-		if(spaceAvailable && car.getSize() <= 150 - currentCars)
-		{
-
-			if (vehicles.size() != 0) {
+	public synchronized boolean enterCar(Car car) throws InterruptedException {
+		if(spaceAvailable && car.getSize() <= 150 - currentCars) {
+			if (!vehicles.isEmpty()) {
 				vehicles.offer(car);
 				car = vehicles.take();
 			}
@@ -269,37 +214,42 @@ class Carpark
 				students++;
 			else
 				lecturers++;
+
 			currentCars += car.getSize();
 			int space = findFreeSpace();
-			if(space != -1)
-			{
-				System.out.println(car.getType() + " " + car.reg() + " placed in parking Space "+ space);
-				ParkingSpace tmp = new ParkingSpace(new Date(System.currentTimeMillis()+rand.nextInt(100000)), space, car);
+
+			if(space != -1) {
+				String fmt = String.format("%s %s placed in parking spot %d.", car.getType(), car.reg(), space);
+				logger.info(fmt);
+
+				Date expiry = new Date(System.currentTimeMillis()+rand.nextInt(100000));
+				ParkingSpace tmp = new ParkingSpace(expiry, space, car);
+
+				carparkData.put(tmp.getReg(), tmp);
+
 				spaces.add(tmp);
-				//System.out.println("Time Expires at "+tmp.getExpiry());
 				fillSpace(space);
 				car.setSpot(space);
+				
 				Collections.sort(spaces);
-			}
-			else
-			{
+			} else {
 				queueCar(car);
 			}
 
-			if(currentCars >= TOTAL_SPACES)
-			{
+			if(currentCars >= TOTAL_SPACES) {
 				spaceAvailable = false;
 			}
+			Double spacesLeft = 150 - currentCars;
+			String fmt = String.format("Spaces Left: %.1f.", spacesLeft);
+			logger.info(fmt);
 
-			System.out.println("Spaces Left: " + (150 - currentCars));
 			return true;
 		}
 		else
 			return false;
 	}
 
-	public synchronized boolean exitCar(Car car)
-	{
+	public synchronized boolean exitCar(Car car) {
 		double carSize = car.getSize();
 
 		currentCars -= carSize;
@@ -308,13 +258,9 @@ class Carpark
 	}
 
 
-	public boolean isSpaceAvailable(Car car)
-	{
+	public boolean isSpaceAvailable(Car car) {
 		double size = car.getSize();
-		if (currentCars < size) {
-			return true;
-		}
-		return false;
+		return currentCars >= size;
 	}
 }
 
@@ -323,69 +269,67 @@ class Carpark
 Must check the Expiry list, if the time has come the car then is considered exited and left.
 
 */
-class ExitThread extends Thread
-{
+class ExitThread extends Thread {
 	private Carpark university = null;
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	public ExitThread(Carpark uni)
-	{
+	public ExitThread(Carpark uni) {
 		this.university = uni;
 	}
 
-	public void run()
-	{
+	@Override
+	public void run() {
 		while (true) {
-			try
-			{
-				synchronized(university.spaces)
-				{
-					if(!university.spaces.isEmpty())
-					{
-						while((university.spaces.getFirst().getExpiry().getTime() <= System.currentTimeMillis()))
-						{
+			try {
+				synchronized(university.spaces){
+					if(!university.spaces.isEmpty()) {
+						while((university.spaces.getFirst().getExpiry().getTime() <= System.currentTimeMillis())) {
 							ParkingSpace tmp = university.removeCar();
-							System.out.println(tmp.getType() + " ("+tmp.getReg()+") has just departed ("+tmp.getExpiry()+").");
+							String fmt = String.format(" [%s] %s (%s) has just departed.", tmp.getExpiry(), tmp.getType(), tmp.getReg());
+							logger.info(fmt);
 						}
 					}
 				}
 			}
-			catch(Exception e)
-			{e.printStackTrace();}
+			catch(Exception e){
+				e.printStackTrace();
+			}
 		}
 	}
 }
 
-class EnterThread extends Thread
-{
-	//Throws people into Enterance Queue.
+class EnterThread extends Thread {
+	//Throws people into Entrance Queue.
 	Car car = new Car();
 	Random rand = new Random();
 	private Carpark uni = null;
 
-	public EnterThread(Carpark uni)
-	{
+	Logger logger = Logger.getLogger(this.getClass().getName());
+
+	public EnterThread(Carpark uni) {
 		this.uni = uni;
 	}
 
-	public void run()
-	{
-		try
-		{
+	@Override
+	public void run() {
+		try {
 			while (true) {
 				car = CarGenerator.generateCar();
-				if(uni.enterCar(car))
-				{
-
-				}
-				else
-				{
-					System.out.println("FULL");
+				if(uni.enterCar(car)) {
+					String fmt = String.format("%s has entered.", car.reg());
+					logger.info(fmt);
+				} else {
+					logger.info("Car Park is FULL.");
 					uni.queueCar(car);
 				}
-				try{
+				try {
 					sleep(rand.nextInt(1000));	
 				}
-				catch(Exception e){}		
+				catch(InterruptedException e){
+					String err = String.format("Interrupted!: %s", e.getMessage());
+					logger.severe(err);
+					throw e;
+				}		
 	
 			}
 		}
@@ -393,25 +337,24 @@ class EnterThread extends Thread
 	}
 }
 
-class CarGenerator
-{
-	public static Car generateCar()
-	{
-		Random rand = new Random();
+class CarGenerator {
+	private static Random rand = new Random();
+
+	private CarGenerator() {
+	}
+	
+	public static Car generateCar() {
 		int in = rand.nextInt(10);
 		if (in % 2 == 0) {
 			return new Humvee(new Registration());	
-		}
-		else
+		} else {
 			return new Car(new Registration());
-
-
+		}
 	}
 }
 
 
-public class ConcurrentCarpark
-{
+public class ConcurrentCarpark {
 	public static void main(String[] args) {
 		Carpark university = new Carpark();
 
@@ -428,7 +371,7 @@ public class ConcurrentCarpark
 		secondEnter.start();
 
 		while (true) {
-			
+			continue;	
 		}
 	}
 }
