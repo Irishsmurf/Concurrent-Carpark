@@ -7,21 +7,18 @@ This project simulates a concurrent carpark using GoLang. It models the entry an
 ## How to Run
 
 1.  **Clone the repository:**
-```
-bash
-    git clone <repository-url>
-    cd <project-directory>
+```bash
+    git clone https://github.com/Irishsmurf/Concurrent-Carpark.git
+    cd Concurrent-Carpark
     
 ```
 2.  **Build the project:**
-```
-bash
+```bash
     go build
     
 ```
 3.  **Run the simulation:**
-```
-bash
+```bash
     ./concurrent-carpark
     
 ```
